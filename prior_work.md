@@ -20,9 +20,23 @@ There is nothing new under the sun.
 * …
 
 ## Proposals
+
+and their <s>deficiencies</s> differences to this one:
+
 * https://github.com/promises-aplus/cancellation-spec/issues/11, https://gist.github.com/bergus/c160b1c0c9e755108d1b
+  - did "Tasks" with (token) reference counting on `then` invocations
+  - implicitly created tokens when none were passed
+  - `.cancel()` method on promises, effective on chain ends
 * https://github.com/domenic/cancelable-promise
+  - needed a new abrupt completion value in the language
+  - burden of explicitly implementing cancellation (and returning `Promise.cancel`) on the callee
+  - burden of explicitly checking for cancellation (if not supported by the called) on the caller
+  - same for `async` functions (as both callee and caller), though [under discussion](https://github.com/domenic/cancelable-promise/issues/23)
+  - A+ assimilation just stays forever pending
+  - `.cancelIfRequested` on tokens
 * https://github.com/zenparsing/es-cancel-token
+  - subscription via a `.promise` that never rejected
+  - `.throwIfRequested`
 * https://github.com/promises-aplus/cancellation-spec/issues/2, https://github.com/promises-aplus/cancellation-spec/issues/5, https://gist.github.com/novemberborn/4407774
 * https://github.com/promises-aplus/cancellation-spec/issues/7
 * https://github.com/promises-aplus/cancellation-spec/issues/8
@@ -45,6 +59,7 @@ There is nothing new under the sun.
 * http://www.bennadel.com/blog/2731-canceling-a-promise-in-angularjs.htm
 
 ### On ES-Discuss
+* https://esdiscuss.org/topic/cancellation-architectural-observations
 * https://esdiscuss.org/topic/es7-promise-cancellation-was-re-promise-returning-delay-function
   - https://gist.github.com/rbuckton/256c4e929f4a097e2c16
 * https://esdiscuss.org/topic/promises-as-cancelation-tokens
