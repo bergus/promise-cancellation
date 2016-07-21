@@ -51,6 +51,7 @@ Any solution should offer
 * powerful composition
 * separation of cancellation capability from result promise
 * interoperability with potential (userland) `Task` implementations
+* easy to polyfill
 
 ## Proposed Solution
 
@@ -114,6 +115,7 @@ For details, see also
 * [technical description](API.md)
 * [the same approach in other words](third_state.md)
 * [usage examples](examples.md)
+* [integration with Tasks and `async`/`await`](enhancements.md)
 
 If you are missing any insights, find sections hard to understand, or are looking for something not covered anywhere,
 feel free to [open an issue](//github.com/bergus/promise-cancellation/issues/new)!

@@ -172,8 +172,11 @@
 
 * Cancelling sequential actions
 
+  inspired by https://github.com/domenic/cancelable-promise/issues/14#issuecomment-227628593
+  and https://github.com/domenic/cancelable-promise/issues/14#issuecomment-227723195
+
 		function drawPieces(token) {
-			return fetch('flower.png', {}, token).then(draw)
+			return fetch('flower.png', token).then(draw)
 			.then(() => fetch('chair.png')).then(draw);
 		}
 
@@ -181,10 +184,73 @@
   but once that has finished it will always draw both pieces. In contrast,
 
 		function drawPieces(token) {
-			return fetch('flower.png', {}, token).then(draw)
+			return fetch('flower.png', token).then(draw)
 			.then(() => fetch('chair.png', token), token).then(draw);
 		}
 
   will abort the fetching of the flower or the fetching of the chair
   depending on which one is currently active, but once a piece has been fetched
-  it will always be drawn.
+  it will always be drawn. When the flower is cancelled, neither will be drawn.
+
+  You have to beware of `catch`es though. In
+
+		function drawPieces(token) {
+			return fetch('flower.png', token).then(draw, drawErrorMessage)
+			.then(() => fetch('chair.png')).then(draw);
+		}
+
+  the `.catch(drawErrorMessage)` will also handle the cancellation, painting the
+  cancellation reason text and then *always* fetching the chair and drawing it,
+  even when the flower was aborted and not drawn.
+
+  To avoid such misbehaviour (it's usually unexpected), one should always pass
+  a token alongside every callback. Omitting it for a `then` invocation with a
+  single callback doesn't hurt because the `onFulfilled` callback isn't run for
+  cancellations anyway, but for the second `then` callback or `catch` invocations
+  it does make a difference. The example should better be written
+
+		function drawPieces(token) {
+			return fetch('flower.png', token).then(draw, null, token)
+			.then(() => fetch('chair.png', token), token).then(draw, null, token)
+			.catch(drawErrorMessage, token);
+		}
+* Cancellable fetching of content
+
+  inspired by the example in https://github.com/domenic/cancelable-promise/blob/master/Third%20State.md
+
+		async function load(target, url, token) {
+			await.cancel = token;
+			startLoadingSpinner();
+			try {
+				let res = await fetch(url, token);
+				let body = await res.text(token);
+				target.innerText = body;
+			} catch (e) {
+				showUserMessage("The site is down and we won't be displaying the pudding recipes you expected.");
+			} finally {
+				stopLoadingSpinner();
+			}
+		}
+		load(…, …, new CancelToken(cancel => cancelButton.onclick = cancel));
+
+* infinite polling on a stream
+
+  inspired by https://github.com/domenic/cancelable-promise/issues/23
+
+		function pollForValue(bus, target, token) {
+			return bus.read().then(answer => {
+				if (answer === target) return;
+				return delay(1000, token).then(() =>
+					pollForValue(bus, target, token)
+				, token);
+			}, null, token);
+		}
+
+  and the same thing with `async`/`await`
+
+		async function pollForValue(bus, target, token) {
+			await.cancel = token;
+			while (target !== await bus.read()) {
+				await delay(1000, token);
+			}
+		}

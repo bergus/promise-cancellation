@@ -311,4 +311,8 @@ and if the [[Promise]] field of the capability is not undefined
 sets the [[Promise]] field of the capability to undefined
 and if `onCalled` is not undefined, invokes `onCalled` with all the received arguments.
 
+Note: This essentially cancels the `onCancelled` subscription, if not that callback
+was already run before. An alternative to emptying the [[Promise]] would be to remove
+the reaction from the token's [[Reactions]] list altogether.
+
 Returns that *Caller* function.
