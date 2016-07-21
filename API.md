@@ -14,7 +14,9 @@
 5. One `CancelToken` might be **associated** with a promise.
 6. A **cancelled promise** is a promise that got rejected
    because its cancellation was requested through its associated token
-7. A **cancelled callback** is an `onFulfilled` or `onRejected` handler
+7. The **corresponding** cancellation token of a handler is the associated
+   token of the promise that the handler is meant to resolve
+8. A **cancelled callback** is an `onFulfilled` or `onRejected` handler
    whose corresponding cancellation token has been cancelled.
    It might be considered an **unregistered** or **ignored** callback.
 
@@ -60,8 +62,6 @@ All of the `Promise` methods would be amended, and a new `CancelToken` class wou
 
 Promise instances would get an additional [[CancelToken]] internal slot for their associated cancellation token.
 
-*PromiseReaction* records would get an additional [[CancelToken]] field for the cancellation token registered with them.
-
 *RejectPromise* and *FulfillPromise* get an additional step that empties the [[CancelToken]] slot of the promise.
 
 #### CancelPromise
@@ -74,12 +74,13 @@ Gets a new `token` parameter which it passes through as the second argument to t
 
 #### PromiseReactionJob
 
-If the [[Capability]].[[Promise]] field of the reaction is undefined, returns immediately.
+Gets the [[Capability]].[[Promise]] field of the reaction as `promiseToResolve`.
+If `promiseToResolve` is undefined, returns immediately.
 Otherwise, sets the [[Capability]].[[Promise]] field of the reaction to undefined.  
 Note: This allows racing multiple reactions for the same promise without a cumbersome token
 and is used by the [optional but useful methods below](#optional-but-useful).
 
-If the [[CancelToken]] field of the reaction contains a cancellation token, its `.requested` property is accessed.
+If the [[CancelToken]] slot of the `promiseToResolve` contains a cancellation token, its `.requested` property is accessed.
 If it yields `true`, the handler is set to `undefined` (so that it is not called and the resolution is passed on).
 
 #### PromiseResolveThenableJob
@@ -109,8 +110,7 @@ The `token` argument is passed to the promise creation (*NewPromiseCapability*).
 
 Gets a third parameter `token`. Its `.length` stays 2.
 
-The `token` argument is passed to the promise creation (*NewPromiseCapability*)
-and attached to the [[CancelToken]] field of both created *PromiseReaction*s.
+The `token` argument is passed to the promise creation (*NewPromiseCapability*).
 
 ### Promise.prototype.catch
 
@@ -210,7 +210,7 @@ with the intrinsic *Promise* constructor and the `token`.
 
 Sets `onCancelled` to undefined if it is not callable.
 
-Creates a new reaction *PromiseReaction* { [[Capability]]: capability, [[Type]]: *"Reject"*, [[Handler]]: `onCancelled`, [[CancelToken]]: `token` }
+Creates a new reaction *PromiseReaction* { [[Capability]]: capability, [[Type]]: *"Reject"*, [[Handler]]: `onCancelled` }
 
 If the [[Result]] is empty, appends the reaction to [[Reactions]].
 Otherwise, runs *EnqueueJob*(*"PromiseJobs"*, *PromiseReactionJob*, reaction, [[Result]])
@@ -269,7 +269,7 @@ Throws if not invoked on a promise or if `onSettled` is not callable.
 Creates a new promise capability by calling *NewPromiseCapability*
 with the appropriate species constructor and no token.
 
-Creates a new reaction *PromiseReaction* { [[Capability]]: capability, [[Type]]: *"Fulfill"*, [[Handler]]: `onSettled`, [[CancelToken]]: null }
+Creates a new reaction *PromiseReaction* { [[Capability]]: capability, [[Type]]: *"Fulfill"*, [[Handler]]: `onSettled` }
 
 Note: the type is irrelevant as the handler is never undefined.
 
@@ -301,7 +301,7 @@ with the intrinsic *Promise* constructor and no token.
 
 Sets all non-callable arguments to undefined.
 
-Creates a new reaction *PromiseReaction* { [[Capability]]: capability, [[Type]]: *"Fulfill"*, [[Handler]]: `onCancelled`, [[CancelToken]]: null }
+Creates a new reaction *PromiseReaction* { [[Capability]]: capability, [[Type]]: *"Fulfill"*, [[Handler]]: `onCancelled` }
 
 If the [[Result]] is empty, appends the reaction to [[Reactions]].
 Otherwise, runs *EnqueueJob*(*"PromiseJobs"*, *PromiseReactionJob*, reaction, [[Result]])
