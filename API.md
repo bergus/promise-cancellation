@@ -251,7 +251,7 @@ Is a getter that accesses the [[Result]] slot (and throws it if is empty).
 
 ### Promise.prototype.trifurcate
 
-> Note: See the [reasoning](trifurcation.md).
+> Note: See the [reasoning](trifurcation.md). Regarding the weird name, see [Issue 4](/bergus/promise-cancellation/issues/4).
 
 with 3 parameters `onFulfilled`, `onRejected` and `onCancelled`.
 
@@ -279,6 +279,12 @@ enqueues a promise job for the cancel reaction with the [[CancelToken]].[[Reason
 Otherwise enqueues a promise job for the rejected reaction, and tracks the rejection appropriately.
 
 Returns the promise of the capability.
+
+### Promise.prototype.whenCancel
+
+with 1 parameter `onCancelled`
+
+implemented as `return this.trifurcate(undefined, undfined, onCancelled)`
 
 ### Promise.prototype.finally
 
