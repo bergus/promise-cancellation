@@ -34,7 +34,7 @@ A promise's `then` method accepts *three* arguments: <code>promise.then(onFulfil
 2.2.2.1. If `onRejected` is a function,  
 2.2.2.2. it must be called *unless it is cancelled* after `promise` is rejected, with `promise`’s reason as its first argument.  
 
-Note: 2.2.1.3. and 2.2.2.3. ("must not be called more than once") stay in place, and still at most one of the two is called.
+> Note: 2.2.1.3. and 2.2.2.3. ("must not be called more than once") stay in place, and still at most one of the two is called.
 
 2.2.6.1. If/when `promise` is fulfilled, all respective *uncancelled* `onFulfilled` callbacks must execute in the order of their originating calls to `then`.  
 2.2.6.2. If/when `promise` is rejected, all respective *uncancelled* `onRejected` callbacks must execute in the order of their originating calls to `then`.
@@ -64,6 +64,20 @@ Promise instances would get an additional [[CancelToken]] internal slot for thei
 
 *RejectPromise* and *FulfillPromise* get an additional step that empties the [[CancelToken]] slot of the promise.
 
+#### Promise Resolve Functions
+
+After the step that checks *alreadyResolved*, get the [[CancelToken]] of the *promise*.  
+If it contains a cancellation token, check whether its [[Result]] is empty. If it is not, return.  
+Otherwise its `.requested` property is accessed.  
+If it yields an abrupt completions, make the result a *NormalCompletion*(`false`).  
+If the result is `true`, return. Otherwise continue with the rest of the steps.
+
+> Note: this prevents `resolve` and `reject` from fulfilling/rejecting already- or soon-to-be cancelled promises.
+
+#### Promise Reject Functions
+
+The same as for resolve functions, check for cancellation and abort if necessary.
+
 #### CancelPromise
 
 Essentially the same as *RejectPromise*, but without removing the cancellation token and calling the *HostPromiseRejectionTracker*.
@@ -77,11 +91,17 @@ Gets a new `token` parameter which it passes through as the second argument to t
 Gets the [[Capability]].[[Promise]] field of the reaction as `promiseToResolve`.
 If `promiseToResolve` is undefined, returns immediately.
 Otherwise, sets the [[Capability]].[[Promise]] field of the reaction to undefined.  
-Note: This allows racing multiple reactions for the same promise without a cumbersome token
-and is used by the [optional but useful methods below](#optional-but-useful).
 
-If the [[CancelToken]] slot of the `promiseToResolve` contains a cancellation token, its `.requested` property is accessed.
-If it yields `true`, the handler is set to `undefined` (so that it is not called and the resolution is passed on).
+> Note: This allows racing multiple reactions for the same promise without a cumbersome token
+> and is used by the [optional but useful methods below](#optional-but-useful).
+
+If the [[CancelToken]] slot of the `promiseToResolve` contains a cancellation token, check
+whether its [[Result]] is empty. If it is not, the *handler* is set to `undefined`.
+Otherwise the tokens `.requested` property is accessed.  
+If it yields an abrupt completions, make the result a *NormalCompletion*(`false`).  
+If the result is `true` the *handler* is set to `undefined`.
+
+> Note: This prevents the handler from being called and instead passes on the resolution.
 
 #### PromiseResolveThenableJob
 
@@ -168,9 +188,9 @@ and appends the reaction.[[Capability]].[[Promise]] to the results.
 For each promise in the [[RegisteredPromises]] list of the `token`,
 it runs *CancelPromise*(promise, `reason`).
 
-Note: Removing all *PromiseReaction*s which were registered with the token
-from the lists they are contained in respectively
-would be nice for garbage collection but is cumbersome to describe.
+> Note: Removing all *PromiseReaction*s which were registered with the token
+> from the lists they are contained in respectively
+> would be nice for garbage collection but is cumbersome to describe.
 
 It empties the [[Reactions]] and [[RegisteredPromises]] lists.
 
@@ -223,7 +243,7 @@ Returns the promise of the capability.
 
 Is a getter that accesses the [[CancelToken]] slot.
 
-Note: introduces synchronous inspection.
+> Note: introduces some kind of inspection (though `.requested` might lie)
 
 ### CancelToken.prototype.reason
 
@@ -231,7 +251,7 @@ Is a getter that accesses the [[Result]] slot (and throws it if is empty).
 
 ### Promise.prototype.trifurcate
 
-Note: See the [reasoning](trifurcation.md).
+> Note: See the [reasoning](trifurcation.md).
 
 with 3 parameters `onFulfilled`, `onRejected` and `onCancelled`.
 
@@ -250,8 +270,8 @@ appends the fulfill reaction to [[PromiseFulfillReactions]],
 appends the reject reaction to [[PromiseRejectReactions]],
 and if an associated [[CancelToken]] exists appends the cancel reaction to [[CancelToken]].[[Reactions]].
 
-Note: the promise on the cancel reaction is not supposed to be appended to the result list of the *CancelFunction*
-even though it is described as such above.
+> Note: the promise on the cancel reaction is not supposed to be appended to the result list of the *CancelFunction*
+> even though it is described as such above.
 
 Else if the value of [[PromiseState]] is *"fulfilled"*, enqueues a promise job for the fulfilled reaction
 Else the the value of [[PromiseState]] is *"rejected"*. If an associated [[CancelToken]] exists,
@@ -271,7 +291,7 @@ with the appropriate species constructor and no token.
 
 Creates a new reaction *PromiseReaction* { [[Capability]]: capability, [[Type]]: *"Fulfill"*, [[Handler]]: `onSettled` }
 
-Note: the type is irrelevant as the handler is never undefined.
+> Note: the type is irrelevant as the handler is never undefined.
 
 If the value of [[PromiseState]] is *"pending"*,
 appends the reaction to [[PromiseFulfillReactions]], [[PromiseRejectReactions]]
@@ -279,8 +299,8 @@ and if an associated [[CancelToken]] exists also to [[CancelToken]].[[Reactions]
 
 Otherwise runs *EnqueueJob*(*"PromiseJobs"*, *PromiseReactionJob*, reaction, undefined).
 
-Note: no argument should be passed to `onSettled` here,
-even if a *PromiseReactionJob* is described to always pass one.
+> Note: no argument should be passed to `onSettled` here,
+> even if a *PromiseReactionJob* is described to always pass one.
 
 Creates a *PassThrough* function that when invoked returns the promise that `finally`
 was called upon.
@@ -311,8 +331,8 @@ and if the [[Promise]] field of the capability is not undefined
 sets the [[Promise]] field of the capability to undefined
 and if `onCalled` is not undefined, invokes `onCalled` with all the received arguments.
 
-Note: This essentially cancels the `onCancelled` subscription, if not that callback
-was already run before. An alternative to emptying the [[Promise]] would be to remove
-the reaction from the token's [[Reactions]] list altogether.
+> Note: This essentially cancels the `onCancelled` subscription, if not that callback
+> was already run before. An alternative to emptying the [[Promise]] would be to remove
+> the reaction from the token's [[Reactions]] list altogether.
 
 Returns that *Caller* function.
