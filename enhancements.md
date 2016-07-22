@@ -1,4 +1,4 @@
-# Enhancement
+# Enhancements
 
 While the [API](API.md) is a relatively modest extension of the Promise semantics
 that can be polyfilled in plain ES5-7, it does already lay the foundation

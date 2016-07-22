@@ -30,6 +30,7 @@ and their <s>deficiencies</s> differences to this one:
 * https://github.com/domenic/cancelable-promise
   - needed a new abrupt completion value in the language
   - impossible to polyfill and rather hard to transpile
+  - did propagate cancellation as a result downwards
   - burden of explicitly implementing cancellation (and returning `Promise.cancel`) on the callee
   - burden of explicitly checking for cancellation (if not supported by the called) on the caller
   - same for `async` functions (as both callee and caller), though [under discussion](https://github.com/domenic/cancelable-promise/issues/23)

@@ -59,10 +59,12 @@ Any solution should offer
 
 We use cancellation tokens, objects that represent the cancellation state and allow for subscription and synchronous queries.
 They are implemented in the `CancelToken` class, can be instantiated and passed around.
-Only their creator (issuer) can request the cancellation, they do not have a public `.cancel()` method.
 
-They clearly separate the capability to cancel an action from the promise itself,
-and can be composed through various utility methods, e.g. to allow cancellation requests from multiple sources.
+Only their creator (issuer) can request the cancellation, they do not have a public `.cancel()` method.
+They clearly separate the capability to cancel an action from the promise itself.
+
+The cancellation token does signal the cancellation request to all elements of a promise chain that received the token.
+Tokens can be composed through various utility methods, e.g. to allow cancellation requests from multiple sources.
 
 By testing whether cancellation has already been requested, asynchronous operations can choose
 to do whatever they think is reasonable with intermediate results.
@@ -115,7 +117,10 @@ For details, see also
 * [technical description](API.md)
 * [the same approach in other words](third_state.md)
 * [usage examples](examples.md)
+* [comparison with earlier proposals](prior_work.md#proposals)
 * [integration with Tasks and `async`/`await`](enhancements.md)
 
 If you are missing any insights, find sections hard to understand, or are looking for something not covered anywhere,
 feel free to [open an issue](//github.com/bergus/promise-cancellation/issues/new)!
+
+A high-level documentation of the API methods can also be found in the [demo implemenation in the Creed library](https://github.com/bergus/creed/blob/cancellation/cancellation.md).

@@ -28,5 +28,6 @@ If a promise is fulfilled or rejected through the resolving functions, its assoc
 If a promise is rejected trough its associated cancellation token, the token remains on the promise, signifying the cancellation.
 
 + the canceltoken is needed anyway for assimilation/adoption via `.then`
++ clear order of subscriptions on one token instead of multiple promises
 - garbage collection of the canceltoken (not sure how large of an issue)
 - complicated means to denote the state, e.g. for unhandled-rejection-tracking or `trifurcate`
