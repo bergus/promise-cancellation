@@ -6,6 +6,8 @@ There is nothing new under the sun.
 > one only has to try to think them again  
 > &nbsp;— [Goethe, *Wilhelm Meister's Wanderjahre*](https://en.wikiquote.org/wiki/Johann_Wolfgang_von_Goethe#Wilhelm_Meister.27s_Wanderjahre_.28Journeyman_Years.29_.281821.E2.80.931829.29)
 
+Another overview can be found at [boopathi/awesome-promise-cancellation](//github.com/boopathi/awesome-promise-cancellation).
+
 ## Existing implementations
 * http://bluebirdjs.com/docs/api/cancellation.html
 * http://dojotoolkit.org/reference-guide/1.10/dojo/promise/Promise.html
@@ -42,7 +44,7 @@ and their <s>deficiencies</s> differences to this one:
   - `.throwIfRequested`
 * https://github.com/promises-aplus/cancellation-spec/issues/2, https://github.com/promises-aplus/cancellation-spec/issues/5, https://gist.github.com/novemberborn/4407774
 * https://github.com/promises-aplus/cancellation-spec/issues/7
-* https://github.com/promises-aplus/cancellation-spec/issues/8
+* https://github.com/promises-aplus/cancellation-spec/issues/8, https://github.com/ForbesLindesay/cancellation
 * https://github.com/SaschaNaz/cancelable
 
 ## Discussions
