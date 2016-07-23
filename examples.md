@@ -140,7 +140,7 @@
 * "Catching" cancellation in an async function:
 
 		async function example(token) {
-			await.cancel = token;
+			await.cancelOn token;
 			try {
 				await …
 			} finally {
@@ -219,7 +219,7 @@
   inspired by the example in https://github.com/domenic/cancelable-promise/blob/master/Third%20State.md
 
 		async function load(target, url, token) {
-			await.cancel = token;
+			await.cancelOn token;
 			startLoadingSpinner();
 			try {
 				let res = await fetch(url, token);
@@ -249,7 +249,7 @@
   and the same thing with `async`/`await`
 
 		async function pollForValue(bus, target, token) {
-			await.cancel = token;
+			await.cancelOn token;
 			while (target !== await bus.read()) {
 				await delay(1000, token);
 			}

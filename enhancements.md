@@ -130,14 +130,16 @@ async function example(token) {
 		const p = longRunningOperation(); // possibly but not necessarily pass the token
 		await p;
 		console.log("A");
-	} finally {
+	} catche(e) {
 		console.log("B");
+	} finally {
+		console.log("C");
 	}
 }
 example(new CancelToken(cancel => setTimeout(cancel, 1000)));
 ```
-With `longRunningOperation` taking multiple seconds, we will expect `B` to be logged
-exactly after 1000 milliseconds, and the `A` log statement to be never executed.
+With `longRunningOperation` taking multiple seconds, we will expect `C` to be logged
+exactly after 1000 milliseconds, and the `A`/`B` log statements to be never executed.
 
 Basically the `await` is expected to do
 ```
@@ -168,6 +170,9 @@ needs to be passed explicitly.
 
 While being explicit is usually a good thing, this approach is too verbose
 and grammatically just horrible (two expressions without a real separator).
+This could be better with something like `await promise orReturnOnCancel token`
+but I'm not confident that the grammar can support this either.
+
 Also it's not really clear what should happen to the promise returned by the
 async function call, or how a token would be associated to it.
 
@@ -175,8 +180,8 @@ Suggestions for improvement are welcome.
 
 ### Syntax proposal B
 
-A new meta property `await.associateCancel` yields a function that can be called
-to set a token that will be associated with the promise returned by the async function.
+A new meta property `await.associateCancel` behaves like a unary operator
+that will associate a token with the promise returned by the async function.
 
 This meta property is only available prior to the first usage of `await`,
 and a syntax error otherwise. This would allow to call the promise constructor
@@ -186,7 +191,7 @@ had run, and pass the acquired token into the *NewPromiseCapability* call afterw
 Example:
 ```javascript
 async function(token) {
-	await.associateCancel(token);
+	await.associateCancel token;
 	…
 	await promise
 	…
@@ -195,7 +200,7 @@ async function(token) {
 
 On every `await`, the associated token would be monitored for cancellation requests.
 
-Since it would be expected that `await.associateCancel` is usually called in the
+Since it would be expected that `await.associateCancel` is usually used in the
 first line of the function with one of the arguments, an alternative would be
 to introduce sugar for that use case:
 ```javascript
@@ -212,28 +217,29 @@ It might however not be flexible enough.
 
 ### Syntax proposal C
 
-A new meta property `await.cancel` behaves like an accessor property.
+A new meta property `await.cancelOn` can be used as an operator of arity zero or one.
 
 If an async function body *Contains* the meta property, a call will not only
 create a `Promise` instance but also a `CancelToken` that is associated to it.
-Every evaluation will have a *current token reference* that can either point
+Every function evaluation will have a *current token reference* that can either point
 to `null` or a cancellation token. If it is not null, it will be constantly monitored,
 and when a cancellation is requested then the result promise will get cancelled
 through its associated token.
 
-When getting the `await.cancel` property, it will yield the associated token.  
-When setting the `await.cancel` property, and the currently referenced token
-is not already cancelled, then it will set the reference to the new value.
+When the `await.cancelOn` operator is used without an operand, it will yield the associated token.  
+When the `await.cancelOn` operator has an operand, it will set the reference to the new value.
+If the currently referenced token was already cancelled, it will throw;
+if the newly referenced token is already cancelled it will behave like `return`.
 
 Example:
 ```javascript
 async function(token) {
-	await.cancel = token;
+	await.cancelOn token;
 	…
 	{
-		await.cancel = null;
+		await.cancelOn null;
 		… // in this section, awaits are not getting interrupted
-		await.cancel = token;
+		await.cancelOn token;
 	}
 	…
 }
