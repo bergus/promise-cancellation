@@ -64,19 +64,21 @@ Promise instances would get an additional [[CancelToken]] internal slot for thei
 
 *RejectPromise* and *FulfillPromise* get an additional step that empties the [[CancelToken]] slot of the promise.
 
-#### Promise Resolve Functions
+#### IsCancelled
 
-After the step that checks *alreadyResolved*, get the [[CancelToken]] of the *promise*.  
-If it contains a cancellation token, check whether its [[Result]] is empty. If it is not, return.  
-Otherwise its `.requested` property is accessed.  
-If it yields an abrupt completions, make the result a *NormalCompletion*(`false`).  
-If the result is `true`, return. Otherwise continue with the rest of the steps.
+with one parameter `promise`.
+
+If the [[CancelToken]] slot of the `promise` does not contain a cancellation token, returns `false`.  
+If the tokens [[Result]] is not empty, returns `true`.  
+Otherwise the tokens `.requested` property is accessed.  
+If it yields an abrupt completion, returns `false`, otherwise the result.
+
+#### Promise Resolve/Reject Functions
+
+After the step that tests *alreadyResolved*, check *IsCancelled*(*promise*).  
+If it yields `true`, return, otherwise continue with the rest of the steps.
 
 > Note: this prevents `resolve` and `reject` from fulfilling/rejecting already- or soon-to-be cancelled promises.
-
-#### Promise Reject Functions
-
-The same as for resolve functions, check for cancellation and abort if necessary.
 
 #### CancelPromise
 
@@ -95,11 +97,8 @@ Otherwise, sets the [[Capability]].[[Promise]] field of the reaction to undefine
 > Note: This allows racing multiple reactions for the same promise without a cumbersome token
 > and is used by the [optional but useful methods below](#optional-but-useful).
 
-If the [[CancelToken]] slot of the `promiseToResolve` contains a cancellation token, check
-whether its [[Result]] is empty. If it is not, the *handler* is set to `undefined`.
-Otherwise the tokens `.requested` property is accessed.  
-If it yields an abrupt completions, make the result a *NormalCompletion*(`false`).  
-If the result is `true` the *handler* is set to `undefined`.
+Checks *IsCancelled*(`promiseToResolve`).
+If it yields `true`, the *handler* is set to `undefined`.
 
 > Note: This prevents the handler from being called and instead passes on the resolution.
 
@@ -284,7 +283,7 @@ Returns the promise of the capability.
 
 with 1 parameter `onCancelled`
 
-implemented as `return this.trifurcate(undefined, undfined, onCancelled)`
+implemented as `return this.trifurcate(undefined, undefined, onCancelled)`
 
 ### Promise.prototype.finally
 
