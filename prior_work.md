@@ -29,7 +29,7 @@ and their <s>deficiencies</s> differences to this one:
   - did "Tasks" with (token) reference counting on `then` invocations
   - implicitly created tokens when none were passed
   - `.cancel()` method on promises, effective on chain ends
-* https://github.com/domenic/cancelable-promise
+* [https://github.com/domenic/cancelable-promise](https://github.com/domenic/cancelable-promise/tree/2f601acb3d4d438be0ebc9e4e54e6febde9d7a3a) (old)
   - needed a new abrupt completion value in the language
   - impossible to polyfill and rather hard to transpile
   - did propagate cancellation as a result downwards
@@ -39,6 +39,16 @@ and their <s>deficiencies</s> differences to this one:
   - A+ assimilation just stays forever pending
   - compatibility issues with third `then` callback argument
   - `.cancelIfRequested` on tokens
+  - no composability of tokens
+* https://github.com/domenic/cancelable-promise (revised)
+  - special `Cancel` exceptions that are treated differently by a new `catch`-like clause
+  - impossible to polyfill, transpilation necessary
+  - did propagate cancellation as a result downwards
+  - burden of explicitly implementing cancellation (and throwing a `Cancel()`) on the callee
+  - burden of explicitly checking for cancellation (if not supported by the called) on the caller
+  - `.throwIfRequested` on tokens
+  - non-generic solution of the [garbage collection problem](https://github.com/tc39/proposal-cancelable-promises/issues/52)
+  - asynchronous propagation of cancellation signal to composed tokens
 * https://github.com/zenparsing/es-cancel-token
   - subscription via a `.promise` that never rejected
   - `.throwIfRequested`
@@ -53,8 +63,10 @@ and their <s>deficiencies</s> differences to this one:
   - [Communication channel](https://github.com/promises-aplus/cancellation-spec/issues/3)
   - [Canceled vs. Cancelled](https://github.com/promises-aplus/cancellation-spec/issues/4)
   - [Cancel as a message](https://github.com/promises-aplus/cancellation-spec/issues/15)
+* https://github.com/stefanpenner/random/tree/master/cancellation
 * https://github.com/kriskowal/gtor/blob/master/cancelation.md
-* https://github.com/rwaldron/tc39-notes/blob/master/es7/2016-05/may-25.md#cancelable-promises-dd
+* https://github.com/tc39/tc39-notes/blob/master/es7/2016-05/may-25.md#cancelable-promises-dd
+* https://github.com/tc39/tc39-notes/blob/master/es7/2016-07/jul-28.md#10ivb-cancelable-promises-update
 * https://github.com/petkaantonov/bluebird/issues/415
 * https://github.com/whatwg/fetch/issues/27: Cancelling fetch
   - https://github.com/whatwg/fetch/issues/20: timeouts

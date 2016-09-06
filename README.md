@@ -123,4 +123,4 @@ For details, see also
 If you are missing any insights, find sections hard to understand, or are looking for something not covered anywhere,
 feel free to [open an issue](//github.com/bergus/promise-cancellation/issues/new)!
 
-A high-level documentation of the API methods can also be found in the [demo implemenation in the Creed library](https://github.com/bergus/creed/blob/cancellation/cancellation.md).
+A high-level documentation of the API methods can also be found in the [demo implementation in the Creed library](https://github.com/bergus/creed/blob/cancellation/cancellation.md).
